@@ -69,6 +69,31 @@ __send_notification() {
   fi
 }
 
+# ---[ What to do when node recovers ]------------------------
+# This is user defined area of what to do node is recovered.
+# You can copy & paste this into your configuration file instead of
+# making modifications to this script.
+
+__node_recover_payload() {
+  local node="$1"
+  local result=1
+
+  #This example applies taints to the Kubernetes node.
+  echo "-- Attempting untaint of node: $node"
+  kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoExecute untainted --overwrite=true 2>&1
+  result=$?
+
+  if [ $result -eq 0 ]; then
+    kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoSchedule untainted --overwrite=true 2>&1
+    result=$?
+  fi
+
+  if [ $result -eq 0 ]; then
+    message="Node taints removed from $node sucessful."
+  else
+    message="FAILED to remove node taints on $node."
+  fi
+
 # ---[ What to do when node unavilable or failed ]------------------------
 # This is user defined area of what to do if node is not available or
 # failed.  You can copy & paste this into your configuration file instead of
@@ -79,12 +104,12 @@ __node_failed_payload() {
   local result=1
 
   #This example applies taints to the Kubernetes node.
-  echo "-- Attempting fence of host: $node"
-  kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoExecute 2>&1
+  echo "-- Attempting fence of node: $node"
+  kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoExecute --overwrite=true 2>&1
   result=$?
 
   if [ $result -eq 0 ]; then
-    kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoSchedule 2>&1
+    kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoSchedule --overwrite=true 2>&1
     result=$?
   fi
 
@@ -256,6 +281,7 @@ __process_all_nodes() {
     else
       if __remove_node_state "$node"
       then
+        __node_recover_payload "$node"
         __send_notification "$node is now back on-line."
       fi
     fi
