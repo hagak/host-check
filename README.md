@@ -58,20 +58,20 @@ node_state_failed_threshold="180"
 |`pushover_token`    | can be populated with the application token for pushover.  This allows easy notifications via Pushover. |
 |`pushover_userkey`    | can be populated with the user key for pushover.  This allows easy notifications Pushover. |
 |`webhook`    | can be populated with a webhook URL of your choice to send a notification to.  This allows easy notifications to Slack, Mattermost, etc. |
-|`node_state_retry_min` | is an integer number of how many consecutive minutes to wait before sending next alert when a host is down.  This is to help reduce the amount of spam alerts messages generated.  |
-|`node_state_failed_threshold`  | is an integer number of how many consecutive minutes a host needs to be down before sub-routine __dropbear_failed_payload() is executed. |
+|`node_state_retry_min` | is an integer number of how many consecutive minutes to wait before sending next alert when a node is down.  This is to help reduce the amount of spam alerts messages generated.  |
+|`node_state_failed_threshold`  | is an integer number of how many consecutive minutes a node needs to be down before sub-routine __dropbear_failed_payload() is executed. |
 ---
 
 ### Modifications
 
-There are some routines within the script you may want to consider making modifications. Instead of editing the script directly, simply cut & paste the default routine from the script and place it in the config file (`host-check.conf`).  Customize the version within your config file.
+There are some routines within the script you may want to consider making modifications. Instead of editing the script directly, simply cut & paste the default routine from the script and place it in the config file (`node-check.conf`).  Customize the version within your config file.
 
 * `__send_notification()` is called to send a notification.  By default it sends a webhook notification to the URL specified in variable `$webhook`.
   * If you would rather an email, then you can modify this to use `mailx` or some other email client.  The content of the notification is in variable `$message`.
 
 * `__node_failed_payload()` is called when node reports status other then "Ready" beyond the `node_state_failed_threshold`.
   * Often there is nothing you can do about it, just needs a human to investigate.
-  * The example within the script shows self-hosted kubernetes nodes having a `taint` applied which notified the rest of the cluster that this host will not be available until a human does something.
+  * The example within the script shows self-hosted kubernetes nodes having a `taint` applied which notified the rest of the cluster that this node will not be available until a human does something.
   * The example also attempts to do a force delete of any terminating pods to allow them to be rescheduled on other nodes.  Pods backed by Ceph RWO PVC will get stuck terminating preventing the pod from being able to start on another node.
   * The variable `$node` will contain the name of the node having an issue.
 * `__node_recover_payload()` is called when node reports status "Ready" after being down.
@@ -116,7 +116,7 @@ $ ls -l /usr/local/bin/node-check.sh
 
   node-check.sh [--debug] [-c <path/name.config>] [-flags] [-a | <nodename>]
 
-  Default configuration file: /home/user/.config/host-check/node-check.conf
+  Default configuration file: /home/user/.config/node-check/node-check.conf
 ```
 
 ---
