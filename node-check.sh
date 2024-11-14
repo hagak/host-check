@@ -290,7 +290,7 @@ __process_all_nodes() {
       else
         # Calculate when node failed threshold will be reached
         now=$(date +%s)
-        echo "-- Node $node failed threshold set at: $(date -d @$(( now + (node_state_failed_threshold * 60) - node_down_seconds)) "$timestamp_format")"
+        echo "-- Node $node failed threshold set at: $(date $date_compare_option$(( now + (node_state_failed_threshold * 60) - node_down_seconds)) "$timestamp_format")"
       fi
     else
       if __remove_node_state "$node"
@@ -300,6 +300,11 @@ __process_all_nodes() {
       fi
     fi
   done
+}
+
+__test_date() {
+  now=$(date +%s)
+  echo "-- Node $node failed threshold set at: $(date $date_compare_option$(( now + (node_state_failed_threshold * 60) - 100)) "$timestamp_format")"
 }
 
 # --- [ List Node ]------------------------------------------------
@@ -319,7 +324,7 @@ __list_nodes() {
     readyState=$2
     if [[ -f "${configdir}/${node}.down" ]]; then
       node_down_seconds=$(__get_node_down_duration_seconds "$node")
-      state="[ Node marked down via state file ${configdir}/${node}.down since $(date -d @$(( now - node_down_seconds)) "$timestamp_format") ]"
+      state="[ Node marked down via state file ${configdir}/${node}.down since $(date $date_compare_option$(( now - node_down_seconds)) "$timestamp_format") ]"
     else
       state=""
     fi
@@ -346,6 +351,14 @@ FALSE=0
 TRUE=1
 DEBUG="$FALSE"
 timestamp_format="+%Y-%m-%dT%H:%M:%S%z"  # 2023-09-25T12:56:02-0400
+
+if date --version >/dev/null 2>&1 ; then
+    echo Using GNU date
+    date_compare_option="-d @"
+else
+    echo Not using GNU date
+    date_compare_option="-j -r "
+fi
 
 # Default values, use the config file to override these!
 configdir="$HOME/.config/node-check"
@@ -392,6 +405,10 @@ if [ "$#" -ne 0 ]; then
       ;;
     -v|--version)
       echo "$VERSION"
+      exit 0
+      ;;
+    -t|--version)
+      __test_date
       exit 0
       ;;
     --)
