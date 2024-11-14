@@ -67,6 +67,20 @@ __send_notification() {
       echo "-- -- Notification sent (${message})"
     fi
   fi
+
+  if [[ -n "$pushover_token" ]]; then
+    __send_pushover "$message"
+  fi
+}
+
+__send_pushover() {
+  local message="$1"
+  if [[ -n "$message" ]]; then
+    if -s --form-string "token=$pushover_token" --form-string "user=$pushover_userkey" --form-string "message=$message" https://api.pushover.net/1/messages.json 2> /dev/null
+    then
+      echo "-- -- Pushover sent (${message})"
+    fi
+  fi
 }
 
 # ---[ What to do when node recovers ]------------------------
@@ -93,6 +107,7 @@ __node_recover_payload() {
   else
     message="FAILED to remove node taints on $node."
   fi
+}
 
 # ---[ What to do when node unavilable or failed ]------------------------
 # This is user defined area of what to do if node is not available or
