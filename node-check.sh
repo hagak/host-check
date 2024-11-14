@@ -290,7 +290,7 @@ __process_all_nodes() {
       else
         # Calculate when node failed threshold will be reached
         now=$(date +%s)
-        echo "-- Node $node failed threshold set at: $(date -j -r $(( now + (node_state_failed_threshold * 60) - node_down_seconds)) "$timestamp_format")"
+        echo "-- Node $node failed threshold set at: $(date -d @$(( now + (node_state_failed_threshold * 60) - node_down_seconds)) "$timestamp_format")"
       fi
     else
       if __remove_node_state "$node"
@@ -319,7 +319,7 @@ __list_nodes() {
     readyState=$2
     if [[ -f "${configdir}/${node}.down" ]]; then
       node_down_seconds=$(__get_node_down_duration_seconds "$node")
-      state="[ Node marked down via state file ${configdir}/${node}.down since $(date -j -r $(( now - node_down_seconds)) "$timestamp_format") ]"
+      state="[ Node marked down via state file ${configdir}/${node}.down since $(date -d @$(( now - node_down_seconds)) "$timestamp_format") ]"
     else
       state=""
     fi
