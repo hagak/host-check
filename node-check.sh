@@ -59,7 +59,6 @@ __error_message() {
 
 __send_notification() {
   local message="$1"
-
   # Send notification via webhook
   if [[ -n "$message" ]]; then
     if curl -X POST -H 'Content-type: application/json' --data '{"text":"'"$message"'"}' "$webhook" > /dev/null 2> /dev/null
@@ -94,11 +93,11 @@ __node_recover_payload() {
 
   #This example applies taints to the Kubernetes node.
   echo "-- Attempting untaint of node: $node"
-  kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoExecute untainted --overwrite=true 2>&1
+  kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoExecute- 2>&1
   result=$?
 
   if [ $result -eq 0 ]; then
-    kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoSchedule untainted --overwrite=true 2>&1
+    kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoSchedule- 2>&1
     result=$?
   fi
 
@@ -386,6 +385,10 @@ if [ "$#" -ne 0 ]; then
     -l|--list)
       __load_config_file "$configfile"
       __list_nodes
+      ;;
+    -r|--recover)
+      __load_config_file "$configfile"
+      __node_recover_payload "$2"
       ;;
     -v|--version)
       echo "$VERSION"
