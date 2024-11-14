@@ -79,20 +79,20 @@ __node_failed_payload() {
   local result=1
 
   #This example applies taints to the Kubernetes node.
-  # echo "-- Attempting fence of host: $node"
-  # kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoExecute 2>&1
-  # result=$?
+  echo "-- Attempting fence of host: $node"
+  kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoExecute 2>&1
+  result=$?
 
-  # if [ $result -eq 0 ]; then
-  #   kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoSchedule 2>&1
-  #   result=$?
-  # fi
+  if [ $result -eq 0 ]; then
+    kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoSchedule 2>&1
+    result=$?
+  fi
 
-  # if [ $result -eq 0 ]; then
-  #   message="Node taints to fence $node sucessful."
-  # else
-  #   message="FAILED to apply node taints on $node."
-  # fi
+  if [ $result -eq 0 ]; then
+    message="Node taints to fence $node sucessful."
+  else
+    message="FAILED to apply node taints on $node."
+  fi
 
 #First check if we have done a kube delete over 8 min ago
 
@@ -236,10 +236,6 @@ __process_all_nodes() {
     node=$1
     readyState=$2
 
-    if [[ $node = "k3snode06" ]]; then
-      readyState="BAD"
-    fi
-
     if [[ $readyState != "Ready" ]]; then
       if __check_node_state "$node"
       then
@@ -257,11 +253,11 @@ __process_all_nodes() {
         now=$(date +%s)
         echo "-- Node $node failed threshold set at: $(date -j -r $(( now + (node_state_failed_threshold * 60) - node_down_seconds)) "$timestamp_format")"
       fi
-      else
-        if __remove_node_state "$node"
-        then
-          __send_notification "$node is now back on-line."
-        fi
+    else
+      if __remove_node_state "$node"
+      then
+        __send_notification "$node is now back on-line."
+      fi
     fi
   done
 }
