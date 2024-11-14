@@ -36,6 +36,8 @@ Configuration is defined via an external configuration file.
 #### Example Configuration File
 
 ```text
+# k8s context
+context=main
 # Webhook Notifications used in __send_notification() subroutine
 webhook="https://hooks.slack.com/<webhook_uri_here>"
 
@@ -52,6 +54,7 @@ host_state_failed_threshold="180"
 
 | Variable  | Description |
 |---        |---          |
+|`context`    | should be populate with the cluster context name from your kubeconfig file
 |`pushover_token`    | can be populated with the application token for pushover.  This allows easy notifications via Pushover. |
 |`pushover_userkey`    | can be populated with the user key for pushover.  This allows easy notifications Pushover. |
 |`webhook`    | can be populated with a webhook URL of your choice to send a notification to.  This allows easy notifications to Slack, Mattermost, etc. |
