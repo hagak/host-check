@@ -79,20 +79,36 @@ __node_failed_payload() {
   local result=1
 
   #This example applies taints to the Kubernetes node.
-#  echo "-- Attempting fence of host: $node"
-#  kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoExecute 2>&1
-#  result=$?
+  # echo "-- Attempting fence of host: $node"
+  # kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoExecute 2>&1
+  # result=$?
 
-#  if [ $result -eq 0 ]; then
-#    kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoSchedule 2>&1
-#    result=$?
-#  fi
+  # if [ $result -eq 0 ]; then
+  #   kubectl taint nodes "$node" node.kubernetes.io/out-of-service=nodeshutdown:NoSchedule 2>&1
+  #   result=$?
+  # fi
 
-#  if [ $result -eq 0 ]; then
-#    message="Node taints to fence $node sucessful."
-#  else
-#    message="FAILED to apply node taints on $node."
-#  fi
+  # if [ $result -eq 0 ]; then
+  #   message="Node taints to fence $node sucessful."
+  # else
+  #   message="FAILED to apply node taints on $node."
+  # fi
+
+#First check if we have done a kube delete over 8 min ago
+
+#If not run kubectl delete pod <PODNAME> --grace-period=0 --force --namespace <NAMESPACE> for all pods in terminating status
+#Then set a timestamp file for when we did this
+  IFS=$'\n'
+  for podline in $(kubectl --context $context get pods --all-namespaces -o wide --field-selector spec.nodeName=$node); do
+    IFS=' '
+    set $podline
+    namespace=$1
+    pod=$2
+    status=$4
+    if [[ $status = "Terminating" ]]; then
+      echo "kubectl --context $context delete pod $pod --grace-period=0 --force --namespace $namespace"
+    fi
+  done
 
 #  echo "-- -- $message"
 # __send_notification "$message"
@@ -257,8 +273,6 @@ __list_nodes() {
   local node=""
   local state=""
   local now=""
-  local context="main" ##add this to options and config
-
   now=$(date +%s)
   echo "Node(s) defined:"
   IFS=$'\n'
@@ -300,6 +314,7 @@ timestamp_format="+%Y-%m-%dT%H:%M:%S%z"  # 2023-09-25T12:56:02-0400
 # Default values, use the config file to override these!
 configdir="$HOME/.config/node-check"
 configfile="${configdir}/node-check.conf"
+context="main"
 hostnames=("localhost")
 node_state_retry_min="59" # minutes
 node_state_failed_threshold="10" # minutes
