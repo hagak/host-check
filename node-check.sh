@@ -6,9 +6,9 @@
 # up and running.
 #
 
-AUTHOR="Richard J. Durso"
-RELDATE="09/25/2023"
-VERSION="0.19"
+AUTHOR="Jeffrey Gordon"
+RELDATE="11/14/2024"
+VERSION="0.20"
 ##############################################################################
 
 ### [ Routines ] #############################################################
@@ -24,23 +24,21 @@ __usage() {
   echo "
   ${0##*/} | Version: ${VERSION} | ${RELDATE} | ${AUTHOR}
 
-  Check if hosts are stuck at Dropbear passphrase prompt.
+  Check nodes Ready status in k8s.
   ----------------------------------------------------------------------------
 
-  This script will check a defined list of hostname(s) to determine if any of
-  the hosts are waiting for a Dropbear passphrase before booting. If detected
-  the script will enter the passphrase to allow the remote system to resume
-  its boot process.
+  This script will check all nodes in the cluster to determine if any of
+  the nodes are not "Ready". If detected, the script will run a defined failure script.
 
   --debug           : Show expect screen scrape in progress.
   -c, --config      : Full path and name of configuration file.
   -a, --all         : Process all nodes.
-  -s, --single      : Process single node.
+  -r, --recover     : Run the recovery script for a single node
   -l, --list        : List defined nodes within the script.
   -h, --help        : This usage statement.
   -v, --version     : Return script version.
 
-  ${0##*/} [--debug] [-c <path/name.config>] [-flags] [-a | <hostname>]
+  ${0##*/} [--debug] [-c <path/name.config>] [-flags] [-a | <nodename>]
 
   Default configuration file: ${configfile}
   "
@@ -302,11 +300,6 @@ __process_all_nodes() {
   done
 }
 
-__test_date() {
-  now=$(date +%s)
-  echo "-- Node $node failed threshold set at: $(date $date_compare_option$(( now + (node_state_failed_threshold * 60) - 100)) "$timestamp_format")"
-}
-
 # --- [ List Node ]------------------------------------------------
 # List all nodes.
 
@@ -383,7 +376,7 @@ if [ "$#" -ne 0 ]; then
     case "$1" in
     -a|--all)
       __load_config_file "$configfile"
-      __process_all_nodes "$passphrase"
+      __process_all_nodes
       ;;
     -c|--config)
       configfile=$2
@@ -405,10 +398,6 @@ if [ "$#" -ne 0 ]; then
       ;;
     -v|--version)
       echo "$VERSION"
-      exit 0
-      ;;
-    -t|--version)
-      __test_date
       exit 0
       ;;
     --)
