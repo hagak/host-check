@@ -45,11 +45,11 @@ webhook="https://hooks.slack.com/<webhook_uri_here>"
 pushover_token=<application pushover token>
 pushover_userkey=<pushover user key>
 
-# Delay in minutes to wait between notifications of host down (reduces spamming alerts)
-host_state_retry_min="59"
+# Delay in minutes to wait between notifications of node down (reduces spamming alerts)
+node_state_retry_min="59"
 
-# How many minutes must a host be down before calling __dropbear_failed_payload()
-host_state_failed_threshold="180"
+# How many minutes must a node be down before calling __node_failed_payload()
+node_state_failed_threshold="180"
 ```
 
 | Variable  | Description |
@@ -74,7 +74,7 @@ There are some routines within the script you may want to consider making modifi
   * The example within the script shows self-hosted kubernetes nodes having a `taint` applied which notified the rest of the cluster that this host will not be available until a human does something.
   * The example also attempts to do a force delete of any terminating pods to allow them to be rescheduled on other nodes.  Pods backed by Ceph RWO PVC will get stuck terminating preventing the pod from being able to start on another node.
   * The variable `$node` will contain the name of the node having an issue.
-
+* `__node_recover_payload()` is called when node reports status "Ready" after being down.
 
 ---
 
