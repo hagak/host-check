@@ -76,7 +76,7 @@ __send_notification() {
 __send_pushover() {
   local message="$1"
   if [[ -n "$message" ]]; then
-    if -s --form-string "token=$pushover_token" --form-string "user=$pushover_userkey" --form-string "message=$message" https://api.pushover.net/1/messages.json 2> /dev/null
+    if curl -s --form-string "token=$pushover_token" --form-string "user=$pushover_userkey" --form-string "message=$message" https://api.pushover.net/1/messages.json 2> /dev/null
     then
       echo "-- -- Pushover sent (${message})"
     fi
@@ -150,8 +150,8 @@ __node_failed_payload() {
     fi
   done
 
-#  echo "-- -- $message"
-# __send_notification "$message"
+ echo "-- -- $message"
+__send_notification "$message"
 
   return $result
 }
@@ -279,7 +279,7 @@ __process_all_nodes() {
     if [[ $readyState != "Ready" ]]; then
       if __check_node_state "$node"
       then
-        #__send_notification "ERROR: $node failed. Node down?"
+        __send_notification "ERROR: $node failed. Node down?"
         __create_node_state "$node"
       fi
       # See if host down is longer than host failed threshold
