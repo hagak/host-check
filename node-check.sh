@@ -130,11 +130,7 @@ __node_failed_payload() {
   else
     message="FAILED to apply node taints on $node."
   fi
-
-#First check if we have done a kube delete over 8 min ago
-
-#If not run kubectl delete pod <PODNAME> --grace-period=0 --force --namespace <NAMESPACE> for all pods in terminating status
-#Then set a timestamp file for when we did this
+  
   IFS=$'\n'
   for podline in $(kubectl --context $context get pods --all-namespaces -o wide --field-selector spec.nodeName=$node); do
     IFS=' '
